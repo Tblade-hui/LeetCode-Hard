@@ -1,0 +1,46 @@
+//很简单的题目，不过我不知道那个结论“两正整数的最大公约数和其最小正线性组合相等”，所以写得非常麻烦，还跑了100多ms，写的没什么意义
+//所以直接用别人的了
+//题目意思翻译一下就是给定数组的子数组的最小正线性组合能不能为1，也就是子数组的最大公约数能不能是1，也就是数组的最大公约数能不能是1。
+//因为gcd(a,b,c) = gcd(gcd(a,b),c) <= gcd(a,b);所以整个数组最大公约数是最小的，求出来看是不是1就行。
+//
+bool isGoodArray(vector<int>& A) {
+        int res = A[0];
+        for (int a: A)
+            res = gcd(res, a);
+        return res == 1;
+}
+
+//证明一下那个结论“两正整数的最大公约数和其最小正线性组合相等”。
+//设e为a，b的最小线性组合，e = ax + by, d = gcd(a,b).
+//那么e肯定能整除d，也就是 e >= d.
+//现在只要证明e是a,b的公约数,就有e >= d, 就得证了e = d.
+//设e不是a的公约数，有a = se + t,  0 < t < e
+//则 t = a - se = a - s(ax + by) = (1 - sx)a + (-sy)b;
+//因为t > 0,t是a,b的线性组合，则 t >= e，矛盾，所以e是a的约数，同理e也是b的约数.
+//就得证了.
+
+
+
+//我之前写的,没啥意义,本质和上边代码一样是求所有数的最大公约数,不过写得比较麻烦,也ac了,
+
+void help(vector<int>& nums) {//排序加消除重复元素,优化
+	sort(nums.begin(), nums.end());
+	auto it = unique(nums.begin(), nums.end());
+	nums.erase(it, nums.end());
+}
+bool isGoodArray(vector<int>& nums) {
+	help(nums);
+	while (nums[0] != 1) {
+		int n = nums.size();
+		vector<int> vi;
+        vi.push_back(nums[0]);
+		for (int i = 1; i < n; ++i) {//这个有点辗转相除的感觉,把余数全放新数组里
+			int p = nums[i] % nums[0];
+			if (p) vi.push_back(p);
+		}
+		help(vi);
+		if (vi[0] != 1 && vi.size() == 1) return false;//最后除就1个数了还不是1,就不行
+		swap(vi, nums);//对余数数组再来一趟
+	}
+	return true;
+}
