@@ -1,0 +1,43 @@
+//这题思路比较容易想到用回溯法，然后看了一下数据规模确实很小，就直接用回溯写了，8ms不是很快，应该可以改进下，直接过了，我就懒得改了。
+//大概意思就是，从words[i]开始选，如果letters里剩下的字母可以满足当前word[i]，就加分，并把word[i]的字母给去掉，
+//然后就solve（i+1,更新后的letters）那么就解决了包含words[i]或者不含而不含words里i之前的单词的所有情况了
+//遍历i，就包含所有情况了。写法就是回溯模板套一下就行了。
+int res, mx, n;
+void dfs(int p, vector<string>& words, vector<int>& ts,
+	vector<int>& score) {
+	if (p == n) { 
+		mx = max(mx, res);//能加的都加完了，res最大了
+		return;
+	}
+	vector<int> tp = ts;
+	for (int i = p; i < n; ++i) {
+		bool ok = true;
+		int r = 0;
+		for (auto c : words[i]) {//检测这个词在不在当前的letters里
+			if (--tp[c - 'a'] < 0) {
+				ok = false;
+				break;
+			}
+			else r += score[c - 'a'];
+		}
+		if (ok) {
+			res += r;
+			dfs(i + 1, words, tp, score);
+			res -= r;//回溯
+		}
+		tp = ts;//回溯
+	}
+	mx = max(mx, res);
+	return;
+}
+int maxScoreWords(vector<string>& words, vector<char>& letters, vector<int>& score) {
+	res = mx = 0;
+	n = words.size();
+	vector<int> vt(26, 0);
+	for (char& c : letters) vt[c - 'a']++;
+	for (int i = 0; i < n; ++i) {
+		res = 0;//每趟循环取得的分重置
+		dfs(i, words, vt, score);
+	}
+	return mx;
+}
