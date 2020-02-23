@@ -1,0 +1,20 @@
+//水题吧,就是求C(2,2)*C(4,2)*C(6,2)*...*C(2n,2).
+//用排列组合公式C(n,m) = C(n-1,m-1) + C(n-1,m).
+
+const int mod = 1e9 + 7;
+int countOrders(int n) {
+	vector<vector<int>> C(2 * n + 1, vector<int>(3, 0));
+	for (int i = 1; i <= 2 * n; ++i) {
+		C[i][0] = 1;
+		C[i][1] = i;
+	}
+	C[2][2] = 1;
+	for (int i = 3; i <= 2 * n; ++i) {
+		C[i][2] = (C[i - 1][1] + C[i - 1][2]) % mod;
+	}
+	int res = 1;
+	for (int i = 4; i <= 2 * n; i += 2) {
+		res = ((long)res * C[i][2]) % mod;
+	}
+	return res;
+}
