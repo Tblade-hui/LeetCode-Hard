@@ -1,0 +1,65 @@
+//写得很水,全是if,else,contest的时候写的,写了就没改了,刚开始思路不对,修修补补就成这样了,引以为戒吧,
+//可以改成队列会简单很多,放在这提醒自己写得垃圾
+//思路就是所有数之和的余数为p
+//如果p是1,则要么去掉1-9中最小余数为1的一个数,如果不行,就去掉最小2个余数为2的
+//如果p是2,则要么去1个最小余数为2的,不行就去2个最小余数为1的
+
+string largestMultipleOfThree(vector<int>& digits) {
+	vector<int> vt(10, 0), vi(10, 0);
+	for (int i : digits) vt[i]++;
+	int p = 0;//总和除以3的余数
+	vector<int> v(3, 0);
+	for (int i = 0; i < 10; ++i) {
+		v[i % 3] += vt[i];
+		p += (i % 3) * vt[i];
+	}
+	p = p % 3;
+	if (p == 1) {//余数为1
+		if (v[1]) {//能去1个余数为1的
+			for (int i = 0; i < 10; ++i) {
+				if (i % 3 == 1 && vt[i]) {
+					vt[i]--;
+					break;
+				}
+			}
+		}
+		else if (v[2] >= 2) {//只能去2个余数为2的
+			int j = 2;
+			while (j-- > 0) {
+				for (int i = 0; i < 10; ++i) {
+					if (i % 3 == 2 && vt[i]) {
+						vt[i]--;
+						break;
+					}
+				}
+			}
+		}
+	}
+	else if (p == 2) {//余数为2
+		if (v[2]) {//可以去1个余数为2
+			for (int i = 0; i < 10; ++i) {
+				if (i % 3 == 2 && vt[i]) {
+					vt[i]--;
+					break;
+				}
+			}
+		}
+		else if (v[1] >= 2) {//只能去2个余数为1
+			int j = 2;
+			while (j-- > 0) {
+				for (int i = 0; i < 10; ++i) {
+					if (i % 3 == 1 && vt[i]) {
+						vt[i]--;
+						break;
+					}
+				}
+			}
+		}
+	}
+	string res = "";
+	for (int i = 9; i >= 0; --i) {
+		if (res == "" &&  i == 0 && vt[i]) return "0";//前导0不要
+		res += string(vt[i], '0' + i);
+	}
+	return res;
+}
