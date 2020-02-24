@@ -1,0 +1,34 @@
+//没写出来，题目不算难写，但是那个二分法确实没想到
+//学过贪心的都知道要按endTime排序，大部分算法书上的经典例子
+//可能也会想到用动态规划，去找之前第一个p使得 endTime[p] <= startTime[i]的
+//于是dp[i] = max(dp[p] + profit[i],dp[i-1])
+//但是找那个p的过程要用到二分法，如果用线性查找可能超时，我没试过，我用的线性查找，但是逻辑写错了
+//嗯，还有实现的时候用的间接排序操作下标，比较容易出错，我卡了二十多分钟，检查出错下标
+
+int jobScheduling(vector<int>& startTime, vector<int>& endTime, vector<int>& profit) {
+	int n = startTime.size();
+	vector<int> d(n, 0);
+	for (int i = 0; i < n; ++i) d[i] = i;
+	auto f = [&endTime, &startTime, &profit](int i, int j) {
+		return endTime[i] < endTime[j];
+	};
+	sort(d.begin(), d.end(), f);//间接排序
+	auto help = [&endTime, &d, &startTime](int i) {//二分法查找那个p
+		int low = 0, high = i;
+		while (low < high) {
+			int mid = (low + high) / 2;
+			if (endTime[d[mid]] <= startTime[d[i]]) low = mid + 1;
+			else high = mid;
+		}
+		return high - 1;
+	};
+	vector<int> dp(n, 0);
+	dp[0] = profit[d[0]];
+	for (int i = 1; i < n; ++i) {//动态规划部分
+		int p = help(i);
+		int r = 0;
+		if (p != -1) r = dp[p];
+		dp[i] = max(dp[i - 1], r + profit[d[i]]);//我下表出错的地方，写成profit[i]
+	}
+	return dp[n-1];
+}
