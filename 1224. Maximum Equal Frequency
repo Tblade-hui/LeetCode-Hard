@@ -1,0 +1,22 @@
+//水题也不算太水吧。
+//用个map存某个数出现的次数题中mp，再用个map存出现个数的次数，比如tm[p]表示目前为止，有tm[p]个数出现了p次。即mp[x] = p,的x的解的个数
+//太绕了点，能理解就行
+//然后要么当前这个数是要被删的，那么之前i个数就是tm[p]个出现p次的数，即tm[p] * p = i,p可以随便取一个就mp[nums[0]]吧;
+//要么这个数不被删，那么要被删的那个数出现次数坑定是1，或者当前这个数的次数加1,而且这个次数只能出现1次
+
+int maxEqualFreq(vector<int>& nums) {
+	int n = nums.size();
+	unordered_map<int, int> mp, tm;
+	int res = 1;
+	mp[nums[0]] = 1;
+	tm[1] = 1;
+	for (int i = 1; i < n; ++i) {
+		if (tm[mp[nums[0]]] * mp[nums[0]] == i) res = i+1;//这个数要被删
+		int t = mp[nums[i]]++;
+		if (mp[nums[i]] != 1) tm[t]--;
+		tm[t + 1]++;
+		if (((tm[t + 1] + 1) * (t + 1) == i) && tm[t + 2] == 1 ||
+			tm[t + 1] * (t + 1) == i && tm[1] == 1) res = i+1;//不被删
+	}
+	return res;
+}
