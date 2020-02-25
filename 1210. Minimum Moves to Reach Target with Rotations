@@ -1,0 +1,42 @@
+//求最短路径，首先想到的就是bfs，然后每种状态能产生3中新的状态，需要记录那些状态已经计算过，避免重复计算
+//按照题意水平和垂直的蛇都可以有3种移动，水平平移，垂直平移，以及转向（水平变垂直，垂直变水平）其中转向要求除了转到的位置为0之外，
+//还要求路过的位置也是0，到图中就是grid[a+1][b+1]也为0
+//然后就是套bfs的模板了，代码应该可以简化一下，运行更快，不过我这样写比较直观
+
+int minimumMoves(vector<vector<int>>& grid) {
+	int m = grid.size(), n = grid[0].size();
+	if (grid[n - 1][n - 2] || grid[n - 1][n - 1]) return -1;
+	vector<vector<vector<int>>> vis(m, vector<vector<int>>(n, vector<int>(2, 0)));//保存访问结点
+	queue<vector<int>> Q;
+	Q.push(vector<int>{0, 0, 0});
+	int res = 0;
+	while (!Q.empty()) { //bfs
+		int p = Q.size();
+		while (p--) {
+			vector<int> ft = Q.front();
+			Q.pop();
+			int a = ft[0], b = ft[1], c = ft[2];//横纵坐标和方向，0为水平，1为垂直
+			if (a == n - 1 && b == n - 2 && c == 0) return res; //到达目标位置
+			if (vis[a][b][c]) continue; //访问过就跳过
+			vis[a][b][c] = 1;
+			if (!c) {//水平
+				if (b + 2 < n && !grid[a][b + 2] && !vis[a][b + 1][0])//水平平移
+					Q.push(vector<int>{a, b + 1, 0});
+        if (a + 1 < m && !grid[a + 1][b] && !grid[a + 1][b + 1] && !vis[a+1][b][0]) //垂直平移
+					Q.push(vector<int>{a + 1, b, 0});
+				if (a + 1 < m && !grid[a + 1][b]&& !grid[a+1][b+1]  && !vis[a][b][1])//转向
+					Q.push(vector<int>{a, b, 1});
+			}
+			else {//垂直
+        if (b + 1 < m && !grid[a ][b+1] && !grid[a + 1][b + 1] && !vis[a][b+1][1])//水平平移
+					Q.push(vector<int>{a, b + 1, 1});
+        if (a + 2 < m && !grid[a + 2][b] && !vis[a + 1][b][1])//垂直平移
+					Q.push(vector<int>{a + 1, b, 1});
+				if (b + 1 < n && !grid[a][b + 1]&& !grid[a+1][b+1] && !vis[a][b][0])//转向
+					Q.push(vector<int>{a, b, 0});
+			}
+		}
+		res++;
+	}
+	return -1;
+}
