@@ -1,0 +1,47 @@
+//求无向图的割边问题，用的tarjan算法，建议看攻略，然后自己写。反正这题不看这个算法我写不出来
+//大概思路，从某个结点u开始用dfs，记录下访问过结点顺序，保存在dfn中，dfn[k]=1，代表dfs第一个访问的k结点,
+//用f数组保存u结点的父结点，也就是u是从f[u],dfs深一层访问到的结点
+//那么如果我能从u开始dfs（dfs当然不能走回父结点去）访问到比f[u]的顺序还小的结点p，则说明从p到f[u]，经过f[u]->u这条边
+//再经过u到p这条路径回到p，构成一个圈，那边f[u]->u肯定不是割边了，因为在一个圈里，删了不会影响连通性
+//可以用low数组表示经过从结点u开始的dfs（当然不能回父结点去）能访问的最小顺序号的结点。
+//即low[u]表示经过u的dfs跑完所有u的孩子能到的结点中dfn最小的结点号（可能是u自己的结点号，如果回不到上面的话）
+//这样的话，对于和u连接的所有结点c，其中dfn[u] < low[c]，那么从c回不到u上面去，即不存在圈，u-c就是割边了。
+
+//建议看不懂的搜tarjan算法看图理解，或者自己画图照着程序跑一下。
+
+vector<vector<int>> res;
+vector<int> low, dfn, f;
+vector<vector<int>> e;
+int cnt;
+void dfs(int u, int fa) {// tarjan算法
+	low[u] = dfn[u] = cnt++; //访问u结点的时间，用序号表示，小的先访问到
+	//bool ok = false;
+	for (auto c : e[u]) { //对于与u连接的每个结点c
+		if (f[c] == -1) { // f[c] == -1表示未访问过c,否则c是u的父结点
+			f[c] = u; //这样u就是c的父结点
+			dfs(c, u); // dfs c结点
+		}
+		if (c != f[u]) { // 只要c不是u的父结点，求u用dfs能访问到的最小结点的序号，那就是自己子节点能访问到的最小的序号，或者是他自己的序号
+			low[u] = min(low[u], low[c]);
+			low[u] = min(low[u], dfn[c]);
+		}
+		if (low[c] > dfn[u]) res.push_back(vector<int>{u, c});// 如果子节点只能访问到序号大的，就是割边，为什么不能取等呢？
+    //因为相等代表从c绕一圈回到了u，虽然没去u上面的结点，但是这当然也是个圈了啊！
+	}
+}
+vector<vector<int>> criticalConnections(int n, vector<vector<int>>& connections) {
+	e = vector<vector<int>>(n);
+	low = dfn = vector<int>(n, 0);
+	f = vector<int>(n, -1);
+	cnt = 0;
+	f[0] = 0;
+	for (auto v : connections) {//数据处理e[u]表示所有和u连接的边的序号
+		e[v[0]].push_back(v[1]);
+		e[v[1]].push_back(v[0]);
+	}
+	dfs(0, 0);
+	for (int i = 1; i < n; ++i) {//考虑非连通图
+		if (f[i] == -1) dfs(i, -1);
+	}
+	return res;
+}
