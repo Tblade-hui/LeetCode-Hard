@@ -1,0 +1,42 @@
+//总的来说本题难度较大，反正我没写出来，感觉很容易想到用动态规划写，但是怎么想到转移方程就比较困难了。
+//解题思路
+//dp[i][j]表示arr1前i个数变为递增且最后一个数为arr2[j],所需要的操作（即改变arr1的数的次数）
+//f[i]则表示表示arr1前i个数变为递增且最后一个数为arr1[i]，所需要的操作
+//那么就有 dp[i][j] = min(dp[i-1][j-1] + 1, f[i-1])
+//f[i] = min(dp[i-1][t],f[i-1]),t表示arr2中第一个小于arr1[i]的数的序号
+//那么什么时候dp[i][j]可以等于dp[i-1][j-1] + 1和f[i-1]呢？需要限制条件进行判断，参考代码注释
+//f[i]同理
+
+int makeArrayIncreasing(vector<int>& arr1, vector<int>& arr2) {
+	sort(arr2.begin(), arr2.end());
+	arr2.resize(unique(arr2.begin(), arr2.end()) - arr2.begin()); // 对arr2进行排序去重复
+	int n = arr1.size(), m = arr2.size();
+	vector<vector<int>> dp(n, vector<int>(m, INT_MAX));
+	vector<int> f(n, INT_MAX);
+  for (int i = 0; i < m; ++i) {//dp的初始化，以arr2[i]为最后一个数的长度为1的序列记为dp[0][i]
+		if (arr1[0] == arr2[i]) dp[0][i] = 0;//如果arr1[0] = arr2[i],那么arr1[0]就不用变为arr2[i]了，则dp[0][i] = 0
+		else dp[0][i] = 1; //否则为1
+	}
+	f[0] = 0; //以arr1[0]结尾长度为1，肯定不用改任何数字
+	for (int i = 1; i < n; ++i) {
+		int p = arr1[i];
+		for (int j = 0; j < m; ++j) {
+			if (arr2[j] > arr1[i - 1] && f[i-1] != INT_MAX) //如果arr2[j] > arr1[i - 1]，则只需替换当前arr1[i]为arr2[j],前提还要f[i-1]能够实现
+				dp[i][j] = f[i - 1] + (arr2[j] != arr1[i]); //如果arr2[j] = arr1[i]，那就不用替换了，直接用f[i-1]个操作实现以arr[i-1]为结尾
+        //长度为i-1的递增数组，再加上arr1[i],就成了dp[i][j]了，如果不等就要替换，操作数加1
+			if (j > 0 && dp[i - 1][j - 1] != INT_MAX) {//这里如果经过dp[i-1][j-1]次操作后，前i-1个数递增且最后一个数为arr2[j-1]，那么只要将
+				int x = dp[i - 1][j - 1] + (arr2[j] != arr1[i]);//当前的arr1[i]替换成arr2[j]即可，如果他们相等，可以少一次替换
+				dp[i][j] = min(dp[i][j],x );//上面的判断隐含了dp[i-1][j-1] 是dp[i-1][0],dp[i-1][1]...dp[i-1][j-1]中的“等价”最小数
+        }//这是因为能实现i-1个数最大数为arr2[0]到arr2[j-2]中任一最小比如arr2[k]，则dp[i-1][j-1] <= dp[i-1][k] + 1,相等情况为
+		}//arr2[k] = arr1[j-1]且得到dp[i-1][j-1]，dp[i-1][k]的操作在0到j-2那段的操作是相同的（或者操作数目相等），而这种情况是包含在f[i-1]里了
+    //所以此处是严格相等的，虽然直观逻辑上是不等的
+		auto t = lower_bound(arr2.begin(), arr2.end(), p) - arr2.begin();
+		if (arr1[i] > arr1[i - 1]) f[i] = f[i - 1]; //计算f[i],与上同理判断
+		if (t - 1 >= 0 && dp[i - 1][t - 1] != INT_MAX) f[i] = min(dp[i - 1][t - 1], f[i]);
+	}
+	int res = f[n-1];
+	for (int i = 0; i < m; ++i) {
+		 res = min(res, dp[n - 1][i]);
+	}
+	return res == INT_MAX ? -1 : res;
+}
