@@ -1,0 +1,57 @@
+//很容易想到用bit操作来解题，可以写出一个O(mn)复杂度的代码，但是因为比较的位数过多系数非常大，容易超时
+//所以要加以改进，想到用map保存重复出现的数字，可以一次解决多次的比较，降低系数
+//
+
+//超时的直观代码
+vector<int> findNumOfValidWords(vector<string>& words, vector<string>& puzzles) {
+        int n = puzzles.size(), m = words.size();
+        vector<int> r(n,0), t(m,0), res(n,0);
+        for(int i = 0; i < n; ++i) {
+            string& s = puzzles[i];
+            for(auto c : s) 
+                r[i] |= (1 << (c - 'a'));
+        }
+        for(int i = 0; i < m; ++i) {
+            string& s = words[i];
+            for(auto c : s) 
+                t[i] |= (1 << (c - 'a'));
+        }
+        for(int i = 0; i < m; ++i){
+            for(int j = 0; j < n; ++j) {
+                if((t[i] & (1 << (puzzles[j][0]- 'a'))) && (r[j]&t[i]) == t[i])
+                    res[j]++;
+            }
+        }
+        return res;
+    }
+    
+/*****************************************************************/
+//改进的可AC的代码
+vector<int> findNumOfValidWords(vector<string>& words, vector<string>& puzzles) {
+        int n = puzzles.size(), m = words.size();
+        vector<int>  res(n,0);
+        unordered_map<int,int> mp;
+        for(int i = 0; i < m; ++i) {//与上相同，求出每个word对应的整数
+            string& s = words[i];
+            int x = 0;
+            for(auto c : s) 
+                x |= (1 << (c - 'a'));
+            mp[x]++;//保存个数，避免重复比较
+        }
+        for(int i = 0; i < n; ++i){
+            int p = (1 << (puzzles[i][0] - 'a'));
+            string& s = puzzles[i];
+            int x = 0;
+            for(auto c : s) 
+                x |= (1 << (c - 'a'));
+            int k = x;
+            while(k) {
+                if((p & k) && mp.count(k)) res[i] += mp[k];
+                k = (k-1) & x; // 对于puzzles[i]对应的整数的每个非空子集，都进行一次判断
+                //这个可以写成
+                //k--;
+                //if(!(k&x)) continue;
+            }
+        }
+        return res;
+    }
